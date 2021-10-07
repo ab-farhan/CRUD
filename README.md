@@ -2,25 +2,58 @@
 ## Resource CURD (-mcr) 
 ###### Here we create custom image upload
  First of all you need to put this bellow code  **Base Controloler**
- <pre>
+```
   public function uploadImage($prefix,$image,$path){
         $image_name=$prefix.'-'.time().".".$image->getClientOriginalExtension();
         $image_path='uploads/'.$path;
         $image->move(public_path($image_path),$image_name);
         return $image_path.'/'.$image_name;
     }
- </pre>
-Then you create a Resource controller
-Your command like:
-
+```
+ 
+###### Then you create a Resource controller
+###### Your command like:
 ```
 php artisan make:model BrandController -mcr
 ```
+**Copy the bellow code and paste your controller, change controller name, model name and others you need**
 
-
-## Store Brand code 
 ```
-/**
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Brand;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
+
+class BrandController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $brands=Brand::orderby('id','DESC')->get();
+        return view('brand.all',compact('brands'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('brand.add');
+    }
+
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -59,11 +92,30 @@ php artisan make:model BrandController -mcr
        } // // end  brand insert success or fail message and redirect
 
     }
-```
 
-## Update Brand Code 
-```
-/**
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\Brand  $brand
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Brand $brand)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\Brand  $brand
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(Brand $brand)
+    {
+        return view('brand.edit',compact('brand'));
+    }
+
+    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -105,11 +157,8 @@ php artisan make:model BrandController -mcr
             return redirect()->back();
         } //end brand update success or fail message and redirect
     }
-```
 
-## Delete Brand Code
-```
- /**
+    /**
      * Remove the specified resource from storage.
      *
      * @param  \App\Models\Brand  $brand
@@ -134,5 +183,6 @@ php artisan make:model BrandController -mcr
 
         return redirect()->back();
     }
+}
 ```
 
