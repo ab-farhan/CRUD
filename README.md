@@ -13,9 +13,11 @@
 Then you create a Resource controller
 Your command like:
 <pre>
-php artisan make:model BrandController -mcr</pre>
-<pre>
+php artisan make:model BrandController -mcr
+</pre>
 This BrandController, pest the bellow code 
+<pre>
+
 <?php
 
 namespace App\Http\Controllers;
