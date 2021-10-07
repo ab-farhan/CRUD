@@ -20,7 +20,7 @@
 ###### Then you create a Resource controller
 ###### Your command like:
 ```
-php artisan make:model BrandController -mcr
+php artisan make:model Brand -mcr
 ```
 **Copy the bellow code and paste your controller, change controller name, model name and others you need**
 
