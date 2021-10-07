@@ -198,7 +198,7 @@ class BrandController extends Controller
 ###### Your create a Resource controller
 ###### Your command like:
 ```
-php artisan make:model WarehouseStaffController -r
+php artisan make:controller WarehouseStaffController -r
 ```
 **Copy the bellow code and paste your controller, change controller name, model name and others you need**
 ```
@@ -467,5 +467,188 @@ class WarehouseStaffController extends Controller
 
 }
 
+```
+## 3. Normal CURD  
+
+**Before copy images code and paste it _BASE CONTROLLER_**
+
+###### Your Create a Normal Controller
+###### Your command like:
+```
+php artisan make:controller WarehouseStaffController 
+```
+**Copy the bellow code and paste your controller, change controller name, model name and others you need**
+
+```
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Admin;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+use Intervention\Image\Facades\Image;
+
+use function PHPUnit\Framework\fileExists;
+
+class AdminController extends Controller
+{
+    // for showing admin page
+    public function index(){
+        return view('admin.index');
+    }
+    // for showing all admins
+    public function allAdmin(){
+        $admins=Admin::get();
+        return view('admin.all',compact('admins'));
+    }
+    // for admin create form page show
+    public function create(){
+        return view('admin.add');
+    }
+
+
+
+    //================= for create admin===================
+    public function store(Request $request){
+        // dd($request->all());
+        //for validtion
+        $request->validate([
+            'name'=>'required|min:3',
+            'phone'=>'nullable|min:11|max:11',
+            'email'=>'required|email|unique:admins,email',
+            'password'=>'required|min:8|confirmed',
+        ]);//end validation
+
+        //for admin data
+        $adminData=array(
+            'name'=>$request->name,
+            'phone'=>$request->phone,
+            'email'=>$request->email,
+            'password'=>Hash::make($request->password),
+        );//end admin data
+
+        //for check image file
+        if($request->hasFile('image')){
+            $adminData['image']=$this->uploadImage('A',$request->image,'admin');
+        }//end check image file
+
+        $admin=Admin::create($adminData);
+
+        // for fail ,success & redirect message
+        if($admin){
+             Session::flash('success',"Successfully create admin");
+             return redirect()->back();
+        }else{
+            Session::flash('error',"Failed create admin");
+             return redirect()->back();
+        }//end  fail ,success & redirect message
+
+    } //===========end store===================
+
+    //=====================  for edit admin==================
+    public function edit($id){
+        $admin=Admin::findOrFail($id);
+        return view('admin.edit',compact('admin'));
+    }//======================end edit admin=====================
+
+    //  for update admin
+public function update(Request $request, $id){
+
+    // for validation
+        $request->validate([
+            'name'=>'required',
+            'phone'=>'nullable|min:11|max:11',
+            'email'=>'required|email|unique:admins,email,'.$id,
+        ]);//end validation
+
+        // for find admin
+        $findadmin=Admin::findOrFail($id);
+
+        //for admin data
+        $adminData=array(
+            'name'=>$request->name,
+            'phone'=>$request->phone,
+            'email'=>$request->email,
+            'updated_at'=>Carbon::now()->toDateTimeString(),
+        );//end admin data
+
+        // for check image file
+        if($request->hasFile('image')){
+
+            if(file_exists(public_path($findadmin->image))){
+                unlink(public_path($findadmin->image));
+            }
+
+            $adminData['image']=$this->uploadImage('A',$request->image,'admin');
+
+        }//end check image
+
+        // for update admin
+        $admin=Admin::where('id',$id)->update($adminData);
+        //end update admin
+
+        //for success or fail message
+        if($admin){
+            Session::flash('success',"Successfully Update admin");
+
+       }else{
+           Session::flash('error',"Failed Update admin");
+
+       }//end success or fail message
+       return redirect()->back();
+}// ============================ end  update =========================
+
+    // ================== for delete admin ==============================
+    public function destroy( $id){
+        $admin=Admin::findOrFail($id);
+
+        // for check image file exist, if exists delete it
+         if(!empty($admin->image) && file_exists(public_path($admin->image) )){
+                unlink(public_path($admin->image));
+                $delete=$admin->delete();
+         }else{
+            $delete=$admin->delete();
+         }//end check image and delete
+
+         // for success , fail message
+         if($delete){
+            return response()->json(['success'=>"Successfully Delete Admins"]);
+         }else{
+            return response()->json(['error'=>"Failed Delete Admins"],500);
+         }//end success faiul message
+         return redirect()->back();
+
+    }//================end destroy admin================
+
+
+
+    //====================== for admin login ======================
+    public function login(Request $request){
+        $request->validate([
+            'email'=>['required','email','exists:admins,email'],
+            'password'=>['required','min:8'],
+        ]);
+
+        $creds=$request->only('email','password');
+        if(Auth::guard('admin')->attempt($creds)){
+            return redirect()->route('admin.home');
+        }else{
+            return redirect()->route('admin.login')->with('error',"Failed To login");
+        }
+
+    }// ===================  end login  ============================
+
+
+    //===================== for logout admin  ====================
+    public function logout(){
+        Auth::guard('admin')->logout();
+        return redirect()->route('admin.home');
+
+    }//==================  end logout ===============
+}
 ```
 
