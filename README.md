@@ -10,6 +10,12 @@
         return $image_path.'/'.$image_name;
     }
 ```
+## If you need only image code
+```
+    if($request->hasFile('brand_image')){
+        $brandData['brand_image']= $this->uploadImage('prefix',$request->image_name,'Floder_Name');
+    }//end brand image
+```
  
 ###### Then you create a Resource controller
 ###### Your command like:
