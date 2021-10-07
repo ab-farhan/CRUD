@@ -1,5 +1,5 @@
 # All CRUD Here
-## Resource CURD (-mcr) 
+## 1. Resource CURD (-mcr) 
 ###### Here we create custom image upload
  First of all you need to put this bellow code  **Base Controloler**
 ```
@@ -190,5 +190,282 @@ class BrandController extends Controller
         return redirect()->back();
     }
 }
+```
+## 2. Resource CURD (-r) 
+
+**Before copy images code and paste it _BASE CONTROLLER_ **
+
+###### Your create a Resource controller
+###### Your command like:
+```
+php artisan make:model WarehouseStaffController -r
+```
+**Copy the bellow code and paste your controller, change controller name, model name and others you need**
+```
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\WarehouseStaff;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
+
+class WarehouseStaffController extends Controller
+{
+    public function indexView(){
+        return view('warehouse_staff.index');
+    }
+
+    public function login(Request $request){
+        $request->validate([
+            'email'=>['required','email','exists:warehouse_staff,email'],
+            'password'=>['required','min:8'],
+        ]);
+
+        $creds=$request->only('email','password');
+        if(Auth::guard('warehousestaff')->attempt($creds)){
+            return redirect()->route('warehousestaff.home');
+        }else{
+            return redirect()->route('warehousestaff.login')->with('error',"Failed To login  Warehouse Staff");
+        }
+    }
+
+    public function logout(){
+        Auth::guard('warehousestaff')->logout();
+        return redirect()->route('warehousestaff.login');
+    }
+
+
+     /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $users=WarehouseStaff::orderBy('id','DESC')->get();
+        return view('warehouse_staff.all',compact('users'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('warehouse_staff.add');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+
+        $request->validate([
+            'name'=>'required|min:3',
+            'date_of_birth'=>'required',
+            'phone'=>'required|min:11|max:11',
+            'nid_number'=>'required',
+            'location'=>'required',
+            'employee_office_id'=>'required',
+            'email'=>'required|email|unique:warehouse_staff,email',
+            'password'=>'required|min:8',
+        ]);
+
+        if($request->hasFile('image')){
+            $image=$request->file('image');
+            $image_name='U-'.time().".".$image->getClientOriginalExtension();
+            $image_path='uploads/warehousestaff/'.$image_name;
+            $image->move(public_path('uploads/warehousestaff'),$image_name);
+
+            $user=WarehouseStaff::create([
+                'name'=>$request->name,
+                'warehouse_staff_image'=>$image_path,
+                'description'=>$request->description,
+                'location'=>$request->location,
+                'department_id'=>$request->department_id,
+                'father_name'=>$request->father_name,
+                'mother_name'=>$request->mother_name,
+                'permanent_address'=>$request->email,
+                'persent_address'=>$request->present_address,
+                'permanent_address'=>$request->permanent_address,
+                'mobile_nember'=>$request->phone,
+                'nid_number'=>$request->nid_number,
+                'date_of_birth'=>$request->date_of_birth,
+                'employee_office_id'=>$request->employee_office_id,
+                'email'=>$request->email,
+                'password'=>Hash::make($request->password),
+                'created_at'=>Carbon::now()->toDateTimeString(),
+
+            ]);
+        }else{
+            $user=WarehouseStaff::create([
+                'name'=>$request->name,
+                'description'=>$request->description,
+                'location'=>$request->location,
+                'department_id'=>$request->department_id,
+                'father_name'=>$request->father_name,
+                'mother_name'=>$request->mother_name,
+                'permanent_address'=>$request->email,
+                'persent_address'=>$request->present_address,
+                'permanent_address'=>$request->permanent_address,
+                'mobile_nember'=>$request->phone,
+                'nid_number'=>$request->nid_number,
+                'date_of_birth'=>$request->date_of_birth,
+                'employee_office_id'=>$request->employee_office_id,
+                'email'=>$request->email,
+                'password'=>Hash::make($request->password),
+                'created_at'=>Carbon::now()->toDateTimeString(),
+
+            ]);
+        }
+
+        if($user){
+            Session::flash('success',"Successfully Create Delivary Boy");
+            return redirect()->back();
+       }else{
+           Session::flash('error',"Failed Create Delivary Boy");
+            return redirect()->back();
+       }
+
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $user=WarehouseStaff::where('id',$id)->first();
+        return view('warehouse_staff.edit',compact('user'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name'=>'required|min:3',
+            'date_of_birth'=>'required',
+            'phone'=>'required|min:11|max:11',
+            'nid_number'=>'required',
+            'location'=>'required',
+            'email'=>'required|email|unique:warehouse_staff,email,'.$id,
+        ]);
+
+        $finduser=WarehouseStaff::findOrFail($id);
+
+        if($request->hasFile('image')){
+            if(file_exists(public_path($finduser->warehouse_staff_image))){
+                unlink(public_path($finduser->warehouse_staff_image));
+            }
+            $image=$request->file('image');
+            $image_name='U-'.time().".".$image->getClientOriginalExtension();
+            $image_path='uploads/warehousestaff/'.$image_name;
+            $image->move(public_path('uploads/warehousestaff'),$image_name);
+
+            $user=WarehouseStaff::where('id',$id)->update([
+                'name'=>$request->name,
+                'warehouse_staff_image'=>$image_path,
+                'description'=>$request->description,
+                'location'=>$request->location,
+                'department_id'=>$request->department_id,
+                'father_name'=>$request->father_name,
+                'mother_name'=>$request->mother_name,
+                'permanent_address'=>$request->email,
+                'persent_address'=>$request->present_address,
+                'permanent_address'=>$request->permanent_address,
+                'mobile_nember'=>$request->phone,
+                'nid_number'=>$request->nid_number,
+                'date_of_birth'=>$request->date_of_birth,
+                'email'=>$request->email,
+                'updated_at'=>Carbon::now()->toDateTimeString(),
+
+            ]);
+        }else{
+            $user=WarehouseStaff::where('id',$id)->update([
+                'name'=>$request->name,
+                'description'=>$request->description,
+                'location'=>$request->location,
+                'department_id'=>$request->department_id,
+                'father_name'=>$request->father_name,
+                'mother_name'=>$request->mother_name,
+                'permanent_address'=>$request->email,
+                'persent_address'=>$request->present_address,
+                'permanent_address'=>$request->permanent_address,
+                'mobile_nember'=>$request->phone,
+                'nid_number'=>$request->nid_number,
+                'date_of_birth'=>$request->date_of_birth,
+                'email'=>$request->email,
+                'updated_at'=>Carbon::now()->toDateTimeString(),
+
+            ]);
+        }
+
+        if($user){
+            Session::flash('success',"Successfully Update Warehouse Staff");
+            return redirect()->back();
+       }else{
+           Session::flash('error',"Failed Update Warehouse Staff");
+            return redirect()->back();
+       }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $user=WarehouseStaff::findOrFail($id);
+
+
+        if(!empty($user->warehouse_staff_image) && file_exists(public_path($user->warehouse_staff_image) )){
+               unlink(public_path($user->warehouse_staff_image));
+               $delete=$user->delete();
+        }else{
+           $delete=$user->delete();
+        }
+
+        if($delete){
+           return response()->json(['success'=>"Successfully Delete Warehouse Staff"]);
+        }else{
+           return response()->json(['error'=>"Failed Delete Warehouse Staff"],500);
+        }
+        return redirect()->back();
+   }
+
+
+
+}
+
 ```
 
