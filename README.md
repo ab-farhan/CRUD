@@ -193,7 +193,7 @@ class BrandController extends Controller
 ```
 ## 2. Resource CURD (-r) 
 
-**Before copy images code and paste it _BASE CONTROLLER_ **
+**Before copy images code and paste it _BASE CONTROLLER_**
 
 ###### Your create a Resource controller
 ###### Your command like:
