@@ -10,13 +10,84 @@
         return $image_path.'/'.$image_name;
     }
 ```
-## If you need only image code
+Image Upload with **Image Intervention**
+```
+use Intervention\Image\Facades\Image;
+```
+```
+public function uploadImage($prefix,$image,$path){
+
+        $image_name=$prefix.'-'.time().".".$image->getClientOriginalExtension();
+        $image_path='uploads/'.$path.'/'.$image_name;
+        // $image->move(public_path($image_path),$image_name);
+        Image::make($image)->save('uploads/'.$path.'/'.$image_name);
+        // return $image_path.'/'.$image_name;
+        return $image_path;
+    }
+```
+###### Image Upload with **SIZE**
+```
+public function uploadImageSize($prefix,$image,$path,$width,$height){
+
+        $image_name=$prefix.'-'.time().".".$image->getClientOriginalExtension();
+        $image_path='uploads/'.$path.'/'.$image_name;
+        Image::make($image)->resize($width,$height)->save('uploads/'.$path.'/'.$image_name);
+        return $image_path;
+    }
+```
+## you neeed to use this code your controller
 ```
     if($request->hasFile('brand_image')){
         $brandData['brand_image']= $this->uploadImage('prefix',$request->image_name,'Floder_Name');
     }//end brand image
 ```
- 
+###### with image size
+ ```
+ if($request->hasFile('member_image')){
+            $userData['member_image'] = $this->uploadImageSize('user',$request->member_image,'user',150,160);
+        }
+ ```
+ ## Delete With sweet alet2 code
+ ```
+ <script>
+    $(document).ready(function(){
+        $(".deleteBtn").click(function(e) {
+          let  url = $(this).attr('data-url');
+            e.preventDefault()
+            Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                            url: url,
+                            type: 'DELETE',
+                            dataType : 'json',
+                            success : function(res){
+                                Swal.fire( 'Success!', 'Your file has been deleted.', 'success')
+                                setTimeout(function(){
+                                    window.location.reload(1);
+                                }, 2000);
+                            },
+                            error : function(res){
+                                Swal.fire( 'Failed!', 'Somethung went wrong.', 'error')
+                            },
+                    });
+                } else {
+                    Swal.fire('Safe Now!','Your imaginary file is safe :)', 'info')
+                }
+            });
+        });
+
+    });
+
+</script>
+ ```
 ###### Then you create a Resource controller
 ###### Your command like:
 ```
